@@ -22,7 +22,7 @@ class Controller(object):
         steer_pid = self.steerPID.step(steer,.05)
         # throttle = 1 - (steer_pid*steer_pid)
         # TBD throttle/brake make sure that we dont go above target_lin_vel
-        #throttle = 1 - abs(steer_pid)    
+        #throttle = 1 - abs(steer_pid)
         #throttle = max(.5, throttle)
         # When close to target velocity, apply breaks and throttle accordingly
         if target_lin_vel == 0:
