@@ -7,16 +7,11 @@ This is the project repo for the final project of Team RoadWeavers
 
 for the Udacity Self-Driving Car Nanodegree: Programming a Real Self-Driving Car. For more information about the project, see the project introduction [here](https://classroom.udacity.com/nanodegrees/nd013/parts/6047fe34-d93c-4f50-8336-b70ef10cb4b2/modules/e1a23b06-329a-4684-a717-ad476f0d8dff/lessons/462c933d-9f24-42d3-8bdc-a08a5fc866e4/concepts/5ab4b122-83e6-436d-850f-9f4d26627fd9).
 
-### Slow Computer Instructions
-In case you have a slow machine, please checked out **[optimization branch](https://github.com/yaser-eftekhari/CarND-Capstone/tree/optimization)** branch. In this branch the code is optimized to be able to run on slower machines. Lots of unnecessary code has been removed and the critical parts of the code run based on frequency and not even driven.
-
-If you are interested in more details about the code, please checkout the branch and see the readme file for more detailed information about how the code has been implemented.
-
 ### Overview of implementation
 Here is a general description of the modules and overview of their implementation. For more details please consult the documentation in the code.
 
 #### Traffic Light Detection and Classification
-In order to correctly detect and classify the light, we started from the SSD-Inception model from tensorflow. The model was trained once with 500 annotated simualator data and once with real data (from Bosch dataset as well as the rosbag provided). Hence, the model was extended not only to detect the traffic light but also recognize the color of the light.
+In order to correctly detect and classify the light, we started from the SSD-Inception model from tensorflow. Seperate models were created for the Simulator and for the Real Site environment. For the simulator, the model was trained with 500 annotated images saved from simulator based camera. For the Real Site, images were extracted from the Rosbag files taken at the test site, and used for training. Hence, the model was extended not only to detect the traffic light but also recognize the color of the light.
 
 In order to increase the accuracy of classification traffic light status is reported only if 3 or more consecutive classifications agree on the status.
 
@@ -107,3 +102,7 @@ cd CarND-Capstone/ros
 roslaunch launch/site.launch
 ```
 5. Confirm that traffic light detection works on real life images
+
+
+### Slow Machine Implementation
+ For an implementation optimized for running on a Slow Machine, please check out **[optimization branch](https://github.com/yaser-eftekhari/CarND-Capstone/tree/optimization)** by Yaser Eftekhari.
