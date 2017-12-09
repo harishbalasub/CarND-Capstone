@@ -6,8 +6,8 @@ from dbw_mkz_msgs.msg import ThrottleCmd, SteeringCmd, BrakeCmd, SteeringReport
 from geometry_msgs.msg import TwistStamped
 import math
 from copy import copy, deepcopy
-from twist_controller import Controller
-
+from twist_controller import Controller, SiteController
+import yaml
 '''
 You can build this node only after you have built (or partially built) the `waypoint_updater` node.
 
@@ -36,6 +36,14 @@ class DBWNode(object):
         if self.logEnable:
             rospy.logwarn(msg)
 
+    def isSite(self):
+        config_string = rospy.get_param("/traffic_light_config")
+        self.config = yaml.load(config_string)
+        self.stop_line_positions = self.config['stop_line_positions']
+        if len(self.stop_line_positions)==1:
+            return True
+        return False
+
     def __init__(self):
         rospy.init_node('dbw_node')
 
@@ -57,9 +65,16 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
-        # Create `TwistController` object
-        min_speed = 25/2.24
-        self.controller = Controller(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle) #<Arguments you wish to provide>)
+        if self.isSite():
+            min_speed = 1.39 # 10kmph = 6.21mph = 2.77m/s
+            siteFlag = True
+            # Create `TwistController` object
+            self.controller = SiteController(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle) #<Arguments you wish to provide>)
+        else:
+            min_speed = 4 # 40kmph = 24.8mph = 11.11m/s
+            siteFlag = False
+            # Create `TwistController` object
+            self.controller = Controller(wheel_base, steer_ratio, min_speed, max_lat_accel, max_steer_angle) #<Arguments you wish to provide>)
 
         self.logEnable = False
         self.dbw_enabled = False

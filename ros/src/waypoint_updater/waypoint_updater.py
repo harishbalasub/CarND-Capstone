@@ -48,15 +48,16 @@ class WaypointUpdater(object):
         self.traffic_wp_list = None
         self.curr_pose = None
         self.curr_pose_wp = -1
-        self.curr_speed = 30
+        self.curr_lin_vel = 0
         self.red_light_wp = -1
         self.prev_red_light_wp = -1
         self.loopEnable = False
+        self.dontStopTwiceEnable = True
 
+        rospy.Subscriber('/current_velocity', TwistStamped, self.curr_vel_cb)
         sys.stdout.flush()
         rospy.spin()
 
-    # optimized search used in tl_detector
     def get_closest_waypoint(self, pose, start_idx=0, max_dist=0):
         """Identifies the closest path waypoint to the given position
             https://en.wikipedia.org/wiki/Closest_pair_of_points_problem
@@ -72,7 +73,6 @@ class WaypointUpdater(object):
         minidx = -1
         idx = start_idx
         dist_sum = 0
-        #optimize to binary search TBD
         for a_idx in range(len(self.base_wp_list)):
             last_idx = idx
             idx = (a_idx + start_idx) % len(self.base_wp_list) 
@@ -140,14 +140,23 @@ class WaypointUpdater(object):
                     wp.twist.twist.linear.x = 0
                 else:
                     # set minimum speed to 4 to avoid slowly down too much before TL and avoid 2 stops.
+                    '''
                     wp.twist.twist.linear.x = max(4, self.base_wp_list[self.detect_red_wp].twist.twist.linear.x - 
                                                     (i - self.detect_red_wp )* self.base_wp_list[self.detect_red_wp].twist.twist.linear.x
+                                                                /max(1, (self.red_light_wp -1 - self.detect_red_wp )) )
+                    '''
+                    # choose a min_speed of 4m/s for target 11.11 m/s and lower for site target 2.77m/s 
+                    min_speed = min(4., self.base_wp_list[self.detect_red_wp].twist.twist.linear.x/2)
+                    wp.twist.twist.linear.x = max(min_speed, self.curr_lin_vel - 
+                                                    (i - self.detect_red_wp )* self.curr_lin_vel
                                                                 /max(1, (self.red_light_wp -1 - self.detect_red_wp )) )
 
             path.waypoints.append(wp)
         # self._log('pos {} orient {}'.format(path.waypoints[0].pose.pose.position,path.waypoints[0].pose.pose.orientation))
         return path
-    
+
+    def curr_vel_cb(self, msg):
+        self.curr_lin_vel = msg.twist.linear.x    
 
     def pose_cb(self, msg):
         """Callback function for when a car position is received
@@ -176,6 +185,7 @@ class WaypointUpdater(object):
         #curr_i = self.get_base_idx(self.curr_pose)
         curr_i = self.get_closest_waypoint(self.curr_pose, start_idx=self.curr_pose_wp)
         self.curr_pose_wp = curr_i
+        self._log("Curr wp {}".format(curr_i))
         lookahead_dist = max(1.5* self.get_waypoint_velocity(self.base_wp_list[curr_i]), 15)
         off_i = self.get_base_off_idx(curr_i, lookahead_dist) # 15m gets more points. TBD Spline
         final_wp = self.get_rough_path(self.curr_pose, curr_i, off_i)
@@ -202,7 +212,7 @@ class WaypointUpdater(object):
         """
         # TODO: Callback for /traffic_waypoint message. Implement
         if self.red_light_wp == -1 and msg.data != -1:
-            if self.prev_red_light_wp == msg.data: # dont stop at same stop twice
+            if self.dontStopTwiceEnable and self.prev_red_light_wp == msg.data: # dont stop at same stop twice
                 return
             # do following check in tl_detector.py
             #dist = self.distance(self.curr_pose_wp, self.red_light_wp)

@@ -42,9 +42,9 @@ class TLDetector(object):
         self.upcoming_red_light_pub = rospy.Publisher('/traffic_waypoint', Int32, queue_size=1)
 
         self.bridge = CvBridge()
-        self.light_classifier = TLClassifier((len(self.stop_line_positions)==1))
+        self.siteFlag = (len(self.stop_line_positions)==1)
+        self.light_classifier = TLClassifier(self.siteFlag)
         self.listener = tf.TransformListener()
-
         self.logEnable = False
         self.useTrafficLightsDebugEnable = False
         self.saveImgEnable = False
@@ -66,11 +66,14 @@ class TLDetector(object):
             for d in self.classlist:
                 makedirs(self.imgDir+"/"+d)        
         self.state = TrafficLight.UNKNOWN
-        self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
         self.last_car_position = 0
-        if not self.useTrafficLightsDebugEnable:
+        self.slowDownAtTrafficLightEnable = True
+        if self.siteFlag:
+            self.stop_zone = 8.
+            self.slowDownAtTrafficLightEnable = False
+        elif not self.useTrafficLightsDebugEnable:
             self.stop_zone = 60.
         else:
             self.stop_zone = 50.
@@ -145,19 +148,26 @@ class TLDetector(object):
         of times till we start using it. Otherwise the previous stable state is
         used.
         '''
+
         if self.state != state:
-            self.state_count = 0
+            if self.slowDownAtTrafficLightEnable and self.state == TrafficLight.UNKNOWN and state != TrafficLight.UNKNOWN:    
+                self.state_count = -20
+                self.last_wp = light_wp
+                self._log('Slow Down Publish light_wp {} state {} state_count {}'.format(light_wp, state, self.state_count))
+                self.upcoming_red_light_pub.publish(Int32(light_wp))
+            else:
+                if self.state_count > 0:
+                    self.state_count = 0
+                self._log('No Publish state {} state_count {}'.format(state, self.state_count))
             self.state = state
-            self._log('No Publish state_count {}'.format(self.state_count))
         elif self.state_count >= STATE_COUNT_THRESHOLD:
-            self.last_state = self.state
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
-            self._log('Publish light_wp {} state_count {}'.format(light_wp, self.state_count))
+            self._log('Publish light_wp {} state {} state_count {}'.format(light_wp, state, self.state_count))
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-            self._log('Publish light_wp {} state_count {}'.format(self.last_wp, self.state_count))
+            self._log('Publish light_wp {} state {} state_count {}'.format(self.last_wp, state, self.state_count))
         self.state_count += 1
 
     def get_closest_waypoint(self, pose, start_idx=0, max_dist=0):
@@ -224,7 +234,7 @@ class TLDetector(object):
             stop_pose.pose.position.y = self.stop_line_positions[i][1]
             stop_pose.pose.position.z = 0
             d = dl(self.waypoints[curr_i].pose.pose.position, stop_pose.pose.position )
-            self._log('Stop Light {} d {} curr_wp {} x {} y {}'.format(i, d, curr_i, stop_pose.pose.position.x, stop_pose.pose.position.y))
+            #self._log('Stop Light {} d {} curr_wp {} x {} y {}'.format(i, d, curr_i, stop_pose.pose.position.x, stop_pose.pose.position.y))
             if d < self.stop_zone:
                 #curr_i = (curr_i -3 + len(self.waypoints)) % len(self.waypoints)
                 wp = self.stop_line_wp[i]
