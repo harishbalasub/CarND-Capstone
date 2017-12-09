@@ -50,7 +50,7 @@ A low pass filter is also used to smooth out the jittery commands.
   * [ROS Indigo](http://wiki.ros.org/indigo/Installation/Ubuntu) if you have Ubuntu 14.04.
 * [Dataspeed DBW](https://bitbucket.org/DataspeedInc/dbw_mkz_ros)
   * Use this option to install the SDK on a workstation that already has ROS installed: [One Line SDK Install (binary)](https://bitbucket.org/DataspeedInc/dbw_mkz_ros/src/81e63fcc335d7b64139d7482017d6a97b405e250/ROS_SETUP.md?fileviewer=file-view-default)
-* Download the [Udacity Simulator](https://github.com/udacity/CarND-Capstone/releases/tag/v1.2).
+* Download the [Udacity Simulator](https://github.com/udacity/CarND-Capstone/releases).
 
 ### Docker Installation
 [Install Docker](https://docs.docker.com/engine/installation/)
