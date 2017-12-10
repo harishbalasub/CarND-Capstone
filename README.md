@@ -35,6 +35,28 @@ In order to control the steering, throttle and break, we use the twist controlle
 
 A low pass filter is also used to smooth out the jittery commands.
 
+#### Module Tuning Parameters and Debug Flags
+
+* waypoint_updater/waypoint_updater.py
+    - logEnable - Enable Debug Logs in this module. Default is False. 
+    - loopEnable - The waypoint loader decelerates to 0 velocity after one round. loopEnable allows Car to ignore 0 velocity and do continuous loop around the track. Default is False.
+    - dontStopTwiceEnable - Dont Stop Twice at same Traffic Light. Default is True.
+
+* twist_controller/dbw_node.py
+    - logEnable - Enable Debug Logs in this module. Default is False. 
+
+* tl_detector/tl_detector.py
+    - logEnable - Enable Debug Logs in this module. Default is False. 
+    - useTrafficLightsDebugEnable - For Debugging only. Use Traffic Light State from /vehicle/traffic_lights instead of Image Classification. Default is False.
+    - saveImgEnable - Enable saving Images in self.imgDir directory. Default is False.
+    - saveImgRate - Rate at which Images are saved. Default is 10
+    - stop_zone - 8m (Site or Test Lot) , 60m (when using Image Classification), 50m (when using useTrafficLightsDebugEnable).
+    - slowDownAtTrafficLightEnable - Slow Down when entering stop_zone irrespective of traffic light state. For Simulator Default is True else False.
+
+* tl_detector/light_classification/tl_classifier.py
+    - logEnable - Enable Debug Logs in this module. Default is False. 
+    - PATH_TO_MODEL - Set to 'light_classification/ssd-site.pb' for Site and 'light_classification/ssd-sim.pb' for Simulator run.
+
 ### Native Installation
 
 * Be sure that your workstation is running Ubuntu 16.04 Xenial Xerus or Ubuntu 14.04 Trusty Tahir. [Ubuntu downloads can be found here](https://www.ubuntu.com/download/desktop).
@@ -69,7 +91,7 @@ docker run -p 4567:4567 -v $PWD:/capstone -v /tmp/log:/root/.ros/ --rm -it capst
 
 1. Clone the project repository
 ```bash
-git clone https://github.com/udacity/CarND-Capstone.git
+git clone https://github.com/harishbalasub/CarND-Capstone.git
 ```
 
 2. Install python dependencies
@@ -85,6 +107,14 @@ source devel/setup.sh
 roslaunch launch/styx.launch
 ```
 4. Run the simulator
+
+### Test Lot testing
+1. Run church.launch
+```cd ros
+source devel/setup.sh
+roslaunch launch/church.launch
+```
+2. Run the simulator
 
 ### Real world testing
 1. Download [training bag](https://drive.google.com/file/d/0B2_h37bMVw3iYkdJTlRSUlJIamM/view?usp=sharing) that was recorded on the Udacity self-driving car (a bag demonstraing the correct predictions in autonomous mode can be found [here](https://drive.google.com/open?id=0B2_h37bMVw3iT0ZEdlF4N01QbHc))
