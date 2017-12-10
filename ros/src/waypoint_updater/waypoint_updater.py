@@ -221,7 +221,8 @@ class WaypointUpdater(object):
             self.detect_red_wp = self.curr_pose_wp
             self.red_light_wp = int(msg.data)
         elif self.red_light_wp != -1 and msg.data == -1:
-            self.prev_red_light_wp = self.red_light_wp
+            if self.curr_lin_vel < 1.: # avoid stopping for a temporary Slowing Down
+                self.prev_red_light_wp = self.red_light_wp
             self.red_light_wp = -1
 
     def obstacle_cb(self, msg):

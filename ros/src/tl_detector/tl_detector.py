@@ -74,7 +74,7 @@ class TLDetector(object):
             self.stop_zone = 8.
             self.slowDownAtTrafficLightEnable = False
         elif not self.useTrafficLightsDebugEnable:
-            self.stop_zone = 60.
+            self.stop_zone = 50.
         else:
             self.stop_zone = 50.
         self._log('Stop Line Positions: {}'.format(self.config['stop_line_positions']))
