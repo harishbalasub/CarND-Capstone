@@ -55,7 +55,7 @@ class SiteController(Controller):
             # throttle_pid = max(0.1,1 - abs(steer_pid) - self.throttlePID.step( (current_lin_vel-target_lin_vel+1), .05))
             throttle_pid = .1
         else:
-            break_pid = 0.
+            break_pid = 40.
             #break_pid = self.breakPID.step( 50*abs(steer_pid/self.steerPID.max), .05)
             throttle_pid = .15 + .05 * (1 - abs(steer_pid/self.steerPID.max))
         return throttle_pid, break_pid, steer_pid 
