@@ -45,7 +45,7 @@ class TLDetector(object):
         self.siteFlag = (len(self.stop_line_positions)==1)
         self.light_classifier = TLClassifier(self.siteFlag)
         self.listener = tf.TransformListener()
-        self.logEnable = False
+        self.logEnable = True
         self.useTrafficLightsDebugEnable = False
         self.saveImgEnable = False
         self.saveImgCount = self.saveRecCount = 0
@@ -71,7 +71,7 @@ class TLDetector(object):
         self.last_car_position = 0
         self.slowDownAtTrafficLightEnable = True
         if self.siteFlag:
-            self.stop_zone = 8.
+            self.stop_zone = 20.
             self.slowDownAtTrafficLightEnable = False
         elif not self.useTrafficLightsDebugEnable:
             self.stop_zone = 50.
